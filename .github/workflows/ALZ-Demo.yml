@@ -15,8 +15,11 @@ env:
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  
   RESOURCE_GROUP_NAME_EUS: rg-alztr-eus-sand-001
   RESOURCE_GROUP_LOCATION_EUS: eastus
+  RESOURCE_GROUP_NAME_FW_EUS: rg-afw-alztr-eus-sand-001
+  RESOURCE_GROUP_LOCATION_FW_EUS: eastus
 
   STORAGE_ACCOUNT_NAME_EUS: steusalztr001${{ github.run_id }}
   STORAGE_ACCOUNT_SKU_EUS: Standard_LRS
@@ -28,9 +31,6 @@ env:
   VNET_SUBNET_PREFIX_EUS: 10.10.1.0/24
 
   PRIVATE_ENDPOINT_NAME_EUS: pep-alztr-eus-sand-001
-
-  RESOURCE_GROUP_NAME_FW_EUS: rg-afw-alztr-eus-sand-001
-  RESOURCE_GROUP_LOCATION_FW_EUS: eastus
 
   FIREWALL_NAME_EUS: afw-alztr-eus-sand-001
   FIREWALL_IP_CONFIG_NAME_EUS: ipg-alztr-eus-sand-001
@@ -74,7 +74,8 @@ jobs:
       - name: Create Azure Resource Group
         run: |
           az group create --name ${{ env.RESOURCE_GROUP_NAME_EUS }} --location ${{ env.RESOURCE_GROUP_LOCATION_EUS }}
-      
+          az group create --name ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }}
+          
       - name: Create Azure Storage Account East US
         run: |
           az storage account create \
