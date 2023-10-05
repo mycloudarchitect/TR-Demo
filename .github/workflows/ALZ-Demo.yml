@@ -53,6 +53,7 @@ env:
   # ACCESS_TOKEN_VALUE_EUS: ${{ secrets.ACCESS_TOKEN_VALUE_EUS }}  # Actual access token value
 
 jobs:
+  
   setup:
     runs-on: ubuntu-latest
 
@@ -109,17 +110,18 @@ jobs:
             --name ${{ env.FIREWALL_NAME_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
             --location ${{ env.STORAGE_ACCOUNT_LOCATION_EUS }} \
-            
-            import time
-            time.sleep(300)
-
+    
+      - name: Create Azure Firewall East US
+        run: |
             az network public-ip create \
             --name ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
             --location ${{ env.STORAGE_ACCOUNT_LOCATION_EUS }} \
             --allocation-method static \
             --sku standard
-            
+
+            # Need a delay or condition here to allow time for the Azure Firewall to finish creation (approx. 5 minutes)
+
             az network firewall ip-config create \
             --firewall-name ${{ env.FIREWALL_NAME_EUS }} \
             --name ${{ env.FIREWALL_IP_CONFIG_NAME_EUS }} \
