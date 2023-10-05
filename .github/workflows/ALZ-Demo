@@ -1,0 +1,188 @@
+name: Deploy Azure Landing Zone (TR)
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  RESOURCE_GROUP_NAME_EUS: rg-alztr-eus-sand-001
+  RESOURCE_GROUP_LOCATION_EUS: eastus
+
+  STORAGE_ACCOUNT_NAME_EUS: steusalztr001${{ github.run_id }}
+  STORAGE_ACCOUNT_SKU_EUS: Standard_LRS
+  STORAGE_ACCOUNT_LOCATION_EUS: eastus
+
+  VNET_NAME_EUS: vnet-alztr-eus-sand-001
+  VNET_ADDRESS_PREFIX_EUS: 10.10.0.0/16
+  VNET_SUBNET_NAME_EUS: snet-alztr-eus-sand-001
+  VNET_SUBNET_PREFIX_EUS: 10.10.1.0/24
+
+  PRIVATE_ENDPOINT_NAME_EUS: pep-alztr-eus-sand-001
+
+  RESOURCE_GROUP_NAME_FW_EUS: rg-afw-alztr-eus-sand-001
+  RESOURCE_GROUP_LOCATION_FW_EUS: eastus
+
+  FIREWALL_NAME_EUS: afw-alztr-eus-sand-001
+  FIREWALL_IP_CONFIG_NAME_EUS: ipg-alztr-eus-sand-001
+  FIREWALL_PUBLIC_IP_EUS: pip-alztr-eus-sand-001
+  FIREWALL_VNET_NAME_EUS: vnet-alztr-eus-sand-001
+  FIREWALL_SUBNET_NAME_EUS: snet-alztr-eus-sand-001
+
+  WORKLOAD_SUBNET_NAME_EUS: snet-wl-alztr-eus-sand-001
+
+  JUMPBOX_SUBNET_NAME_EUS: snet-jump-alztr-eus-sand-001
+  JUMPBOX_NAME_EUS: vm-jump-alztr-eus-sand-001
+
+  # AZURE_ADMIN_USERNAME: ${{ secrets.AZURE_ADMIN_USERNAME }}
+  # AZURE_ADMIN_PASSWORD: ${{ secrets.AZURE_ADMIN_PASSWORD }}
+ 
+  # KEY_VAULT_NAME_EUS: kv-alztr-eus-sand-001
+  # SERVICE_PRINCIPAL_OBJECT_ID_EUS: <Service_Principal_Object_Id>
+
+  # ACCESS_TOKEN_SECRET_NAME_EUS: actoken-alztr-eus-sand-001  # Name under which the access token will be stored
+  # ACCESS_TOKEN_VALUE_EUS: ${{ secrets.ACCESS_TOKEN_VALUE_EUS }}  # Actual access token value
+
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    # environment: 
+
+    steps:
+      - name: Azure CLI Login using OIDC
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: 'Run az commands'
+        run: |
+          az account show
+          az group list
+      
+      - name: Create Azure Resource Group
+        run: |
+          az group create --name ${{ env.RESOURCE_GROUP_NAME_EUS }} --location ${{ env.RESOURCE_GROUP_LOCATION_EUS }}
+      
+      - name: Create Azure Storage Account East US
+        run: |
+          az storage account create \
+            --name ${{ env.STORAGE_ACCOUNT_NAME_EUS }} \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_EUS }} \
+            --location ${{ env.STORAGE_ACCOUNT_LOCATION_EUS }} \
+            --sku ${{ env.STORAGE_ACCOUNT_SKU_EUS }}
+
+      - name: Create Azure Virtual Network East US
+        run: |
+          az network vnet create \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_EUS }} \
+            --name ${{ env.VNET_NAME_EUS }} \
+            --address-prefix ${{ env.VNET_ADDRESS_PREFIX_EUS }} \
+            --subnet-name ${{ env.VNET_SUBNET_NAME_EUS }} \
+            --subnet-prefix ${{ env.VNET_SUBNET_PREFIX_EUS }} 
+
+      - name: Create Azure Private Endpoint East US
+        run: |
+          az network private-endpoint create \
+          --name ${{ env.PRIVATE_ENDPOINT_NAME_EUS }} \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME_EUS }} \
+          --vnet-name ${{ env.VNET_NAME_EUS }} \
+          --subnet ${{ env.VNET_SUBNET_NAME_EUS }} \
+          --private-connection-resource-id "/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME_EUS }}/providers/Microsoft.Storage/storageAccounts/${{ env.STORAGE_ACCOUNT_NAME_EUS }}" \
+          --group-ids blob \
+          --connection-name blobConnection
+      
+      - name: Create Azure Firewall East US
+        run: |
+            az network firewall create \
+            --name ${{ env.FIREWALL_NAME_EUS }} \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+            --location ${{ env.STORAGE_ACCOUNT_LOCATION_EUS }} \
+            
+            az network public-ip create \
+            --name ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+            --location ${{ env.STORAGE_ACCOUNT_LOCATION_EUS }} \
+            --allocation-method static \
+            --sku standard
+            
+            az network firewall ip-config create \
+            --firewall-name ${{ env.FIREWALL_IP_CONFIG_NAME_EUS }} \
+            --name ${{ env.FIREWALL_IP_CONFIG_NAME_EUS }} \
+            --public-ip-address ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+            --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \
+            
+            az network firewall update \
+            --name ${{ env.FIREWALL_IP_CONFIG_NAME_EUS }} \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+            
+            az network public-ip show \
+            --name  ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+            fwprivaddr="$(az network firewall ip-config list -g Test-FW-RG -f Test-FW01 --query "[?name=='FW-config'].privateIpAddress" --output tsv)"
+            
+            az network vnet create \
+            --name ${{ env.FIREWALL_VNET_NAME_EUS }} \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+            --location ${{ env.STORAGE_ACCOUNT_LOCATION_EUS }} \
+            --address-prefix 10.0.0.0/16 \
+            --name ${{ env.FIREWALL_SUBNET_NAME_EUS }} \
+            --subnet-prefix 10.0.1.0/26
+            az network vnet subnet create \
+            --name ${{ env.WORKLOAD_SUBNET_NAME_EUS }} \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+            --name ${{ env.FIREWALL_VNET_NAME_EUS }} \
+            --address-prefix 10.0.2.0/24
+          
+            az network vnet subnet create \
+            --name ${{ env.JUMPBOX_SUBNET_NAME_EUS }} \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+            --name ${{ env.FIREWALL_VNET_NAME_EUS }} \
+            --address-prefix 10.0.3.0/24
+
+            az vm create \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+            --name ${{ env.JUMPBOX_NAME_EUS }} \
+            --location ${{ env.STORAGE_ACCOUNT_LOCATION_EUS }} \
+            --image win2016datacenter \
+            --name ${{ env.FIREWALL_VNET_NAME_EUS }} \
+            --subnet ${{ env.JUMPBOX_SUBNET_NAME_EUS }} \
+            --admin-username ${{ env.AZURE_ADMIN_USERNAME }} \
+            --admin-password ${{ env.AZURE_ADMIN_PASSWORD }} \
+            az vm open-port --port 3389 --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} --name ${{ env.JUMPBOX_NAME_EUS }}
+
+#      - name: Create Azure Key Vault
+#        run: |
+#            az keyvault create \
+#            --name ${{ env.KEY_VAULT_NAME_EUS }} \
+#            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+#            --location eastus
+
+#      - name: Set Access Policies for Azure Key Vault East US
+#        run: |
+#            az keyvault set-policy \
+#            --name ${{ env.KEY_VAULT_NAME_EUS }} \
+#            --object-id ${{ env.SERVICE_PRINCIPAL_OBJECT_ID_EUS }} \
+#            --key-permissions get create delete list \
+#            --secret-permissions get set delete \
+#            --certificate-permissions get import delete
+      
+#      - name: Store Access Token in Azure Key Vault East US
+#        run: |
+#            az keyvault secret set \
+#            --name ${{ env.ACCESS_TOKEN_SECRET_NAME_EUS }} \
+#            --vault-name ${{ env.KEY_VAULT_NAME_EUS }} \
+#            --value "${{ env.ACCESS_TOKEN_VALUE_EUS }}"
+
+      #- name: Azure Logout
+      #  run: az logout
