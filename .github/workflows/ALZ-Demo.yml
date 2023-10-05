@@ -55,7 +55,6 @@ env:
 jobs:
   setup:
     runs-on: ubuntu-latest
-    environment: dev
 
     steps:
       - name: Azure CLI Login using OIDC
