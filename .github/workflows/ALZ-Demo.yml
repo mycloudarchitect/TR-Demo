@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
+
 env:
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -45,11 +49,6 @@ env:
 
   # ACCESS_TOKEN_SECRET_NAME_EUS: actoken-alztr-eus-sand-001  # Name under which the access token will be stored
   # ACCESS_TOKEN_VALUE_EUS: ${{ secrets.ACCESS_TOKEN_VALUE_EUS }}  # Actual access token value
-
-
-permissions:
-  id-token: write # This is required for requesting the JWT
-  contents: read  # This is required for actions/checkout
 
 jobs:
   setup:
