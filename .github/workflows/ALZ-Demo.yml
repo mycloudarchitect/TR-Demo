@@ -123,6 +123,7 @@ jobs:
             # Need a delay or condition here to allow time for the Azure Firewall to finish creation (approx. 5 minutes)
 
             az network firewall wait
+            --created
             --exists
 
             az network firewall ip-config create \
