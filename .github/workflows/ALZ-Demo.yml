@@ -43,8 +43,8 @@ env:
   JUMPBOX_SUBNET_NAME_EUS: snet-jump-alztr-eus-sand-001
   JUMPBOX_NAME_EUS: vm-jump-alztr-eus-sand-001
 
-  # AZURE_ADMIN_USERNAME: ${{ secrets.AZURE_ADMIN_USERNAME }}
-  # AZURE_ADMIN_PASSWORD: ${{ secrets.AZURE_ADMIN_PASSWORD }}
+  AZURE_ADMIN_USERNAME: ${{ secrets.AZURE_ADMIN_USERNAME }}
+  AZURE_ADMIN_PASSWORD: ${{ secrets.AZURE_ADMIN_PASSWORD }}
  
   # KEY_VAULT_NAME_EUS: kv-alztr-eus-sand-001
   # SERVICE_PRINCIPAL_OBJECT_ID_EUS: <Service_Principal_Object_Id>
@@ -137,6 +137,7 @@ jobs:
             --address-prefix 10.0.0.0/16 \
             --name ${{ env.FIREWALL_SUBNET_NAME_EUS }} \
             --subnet-prefix 10.0.1.0/26
+            
             az network vnet subnet create \
             --name ${{ env.WORKLOAD_SUBNET_NAME_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
