@@ -118,16 +118,12 @@ jobs:
             --sku standard
             
             az network firewall ip-config create \
-            --firewall-name ${{ env.FIREWALL_IP_CONFIG_NAME_EUS }} \
+            --firewall-name ${{ env.FIREWALL_NAME_EUS }} \
             --name ${{ env.FIREWALL_IP_CONFIG_NAME_EUS }} \
             --public-ip-address ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
             --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \
-            
-            az network firewall update \
-            --name ${{ env.FIREWALL_IP_CONFIG_NAME_EUS }} \
-            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
-            
+       
             az network public-ip show \
             --name  ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
