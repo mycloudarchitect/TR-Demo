@@ -122,6 +122,9 @@ jobs:
 
             # Need a delay or condition here to allow time for the Azure Firewall to finish creation (approx. 5 minutes)
 
+            az network firewall wait
+            --exists
+
             az network firewall ip-config create \
             --firewall-name ${{ env.FIREWALL_NAME_EUS }} \
             --name ${{ env.FIREWALL_IP_CONFIG_NAME_EUS }} \
