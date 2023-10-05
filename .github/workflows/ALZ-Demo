@@ -1,4 +1,4 @@
-name: Deploy Azure Landing Zone (TR)
+name: Deploy Azure Landing Zone (TR) 
 
 on:
   push:
