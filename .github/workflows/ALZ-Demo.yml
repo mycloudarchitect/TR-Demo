@@ -111,12 +111,12 @@ jobs:
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
             --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }} \
 
-      - name: Create Azure Firewall Wait until Finished
-        run: |
-            az network firewall wait 
-            --name ${{ env.FIREWALL_NAME_EUS }} 
-            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }}
-            --created True
+      #- name: Create Azure Firewall Wait until Finished
+      #  run: |
+      #     az network firewall wait 
+      #      --name ${{ env.FIREWALL_NAME_EUS }} 
+      #      --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }}
+      #      --created True
 
       - name: Create Azure Firewall PIP East US
         run: |
