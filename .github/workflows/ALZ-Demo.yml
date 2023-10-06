@@ -116,7 +116,7 @@ jobs:
             az network firewall wait 
             --name ${{ env.FIREWALL_NAME_EUS }} 
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }}
-            --created
+            --created True
 
       - name: Create Azure Firewall PIP East US
         run: |
