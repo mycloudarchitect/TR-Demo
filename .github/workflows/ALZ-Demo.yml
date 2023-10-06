@@ -111,8 +111,8 @@ jobs:
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
             --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }} \
 
-            # Need a delay or condition here to allow time for the Azure Firewall to finish creation (approx. 5 minutes)
-
+      - name: Create Azure Firewall Wait until Finished
+        run: |
             az network firewall wait 
             --created True 
             --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} 
@@ -129,18 +129,24 @@ jobs:
             --allocation-method static \
             --sku standard
 
+      - name: Create Azure Firewall IPConfig East US
+        run: |            
             az network firewall ip-config create \
             --firewall-name ${{ env.FIREWALL_NAME_EUS }} \
             --name ${{ env.FIREWALL_IP_CONFIG_NAME_EUS }} \
             --public-ip-address ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
             --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \
-       
+
+      - name: Show Azure Firewall PIP East US
+        run: |             
             az network public-ip show \
             --name  ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
             fwprivaddr="$(az network firewall ip-config list -g Test-FW-RG -f Test-FW01 --query "[?name=='FW-config'].privateIpAddress" --output tsv)"
-            
+      
+      - name: Create Azure Firewall vNet & Subnet 01 East US
+        run: |            
             az network vnet create \
             --name ${{ env.FIREWALL_VNET_NAME_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
@@ -149,18 +155,24 @@ jobs:
             --name ${{ env.FIREWALL_SUBNET_NAME_EUS }} \
             --subnet-prefix 10.0.1.0/26
             
+      - name: Create Azure Firewall Subnet 02 East US
+        run: |    
             az network vnet subnet create \
             --name ${{ env.WORKLOAD_SUBNET_NAME_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
             --name ${{ env.FIREWALL_VNET_NAME_EUS }} \
             --address-prefix 10.0.2.0/24
           
+      - name: Create Azure Firewall Subnet 03 East US
+        run: |  
             az network vnet subnet create \
             --name ${{ env.JUMPBOX_SUBNET_NAME_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
             --name ${{ env.FIREWALL_VNET_NAME_EUS }} \
             --address-prefix 10.0.3.0/24
 
+      - name: Create FW Management Jumpbox VM East US      
+        run: |
             az vm create \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
             --name ${{ env.JUMPBOX_NAME_EUS }} \
@@ -171,6 +183,7 @@ jobs:
             --admin-username ${{ env.AZURE_ADMIN_USERNAME }} \
             --admin-password ${{ env.AZURE_ADMIN_PASSWORD }} \
             az vm open-port --port 3389 --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} --name ${{ env.JUMPBOX_NAME_EUS }}
+
 
 #      - name: Create Azure Key Vault
 #        run: |
