@@ -103,7 +103,14 @@ jobs:
           --private-connection-resource-id "/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME_EUS }}/providers/Microsoft.Storage/storageAccounts/${{ env.STORAGE_ACCOUNT_NAME_EUS }}" \
           --group-ids blob \
           --connection-name blobConnection
- 
+      
+      - name: Create Azure Firewall East US
+        run: |
+            az network firewall create \
+            --name ${{ env.FIREWALL_NAME_EUS }} \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+            --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }} \
+    
       - name: Create Azure Firewall East US
         run: |
             az network public-ip create \
