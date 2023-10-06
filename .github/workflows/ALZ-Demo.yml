@@ -110,15 +110,6 @@ jobs:
             --name ${{ env.FIREWALL_NAME_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
             --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }} \
-    
-      - name: Create Azure Firewall East US
-        run: |
-            az network public-ip create \
-            --name ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
-            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
-            --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }} \
-            --allocation-method static \
-            --sku standard
 
             # Need a delay or condition here to allow time for the Azure Firewall to finish creation (approx. 5 minutes)
 
@@ -127,6 +118,16 @@ jobs:
             --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} 
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} 
             --exists True
+            --timeout 300            
+
+      - name: Create Azure Firewall PIP East US
+        run: |
+            az network public-ip create \
+            --name ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+            --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }} \
+            --allocation-method static \
+            --sku standard
 
             az network firewall ip-config create \
             --firewall-name ${{ env.FIREWALL_NAME_EUS }} \
