@@ -125,7 +125,6 @@ jobs:
             az network public-ip show \
             --name  ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
-            fwprivaddr="$(az network firewall ip-config list -g Test-FW-RG -f Test-FW01 --query "[?name=='FW-config'].privateIpAddress" --output tsv)"
       
       - name: Create Azure Firewall vNet & Subnet 01 East US
         run: |            
