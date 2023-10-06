@@ -114,11 +114,9 @@ jobs:
       - name: Create Azure Firewall Wait until Finished
         run: |
             az network firewall wait 
-            --created True 
-            --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} 
-            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} 
-            --exists True
-            --timeout 300            
+            --name ${{ env.FIREWALL_NAME_EUS }} 
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }}
+            --created
 
       - name: Create Azure Firewall PIP East US
         run: |
