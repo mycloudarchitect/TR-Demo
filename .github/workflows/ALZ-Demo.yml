@@ -103,28 +103,23 @@ jobs:
           --private-connection-resource-id "/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME_EUS }}/providers/Microsoft.Storage/storageAccounts/${{ env.STORAGE_ACCOUNT_NAME_EUS }}" \
           --group-ids blob \
           --connection-name blobConnection
-      
-      - name: Create Azure Firewall East US
-        run: |
-            az network firewall create \
-            --name ${{ env.FIREWALL_NAME_EUS }} \
-            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
-            --location ${{ env.STORAGE_ACCOUNT_LOCATION_EUS }} \
-    
+ 
       - name: Create Azure Firewall East US
         run: |
             az network public-ip create \
             --name ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
-            --location ${{ env.STORAGE_ACCOUNT_LOCATION_EUS }} \
+            --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }} \
             --allocation-method static \
             --sku standard
 
             # Need a delay or condition here to allow time for the Azure Firewall to finish creation (approx. 5 minutes)
 
-            az network firewall wait
-            --created
-            --exists
+            az network firewall wait 
+            --created True 
+            --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} 
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} 
+            --exists True
 
             az network firewall ip-config create \
             --firewall-name ${{ env.FIREWALL_NAME_EUS }} \
