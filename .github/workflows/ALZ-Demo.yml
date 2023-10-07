@@ -41,7 +41,7 @@ env:
   WORKLOAD_SUBNET_NAME_EUS: snet-wl-alztr-eus-sand-001
 
   JUMPBOX_SUBNET_NAME_EUS: snet-jump-alztr-eus-sand-001
-  JUMPBOX_NAME_EUS: vm-jump-alztr-eus-sand-001
+  JUMPBOX_NAME_EUS: vm-jump-afw-001
 
   AZURE_ADMIN_USERNAME: ${{ secrets.AZURE_ADMIN_USERNAME }}
   AZURE_ADMIN_PASSWORD: ${{ secrets.AZURE_ADMIN_PASSWORD }}
@@ -179,7 +179,7 @@ jobs:
             --port 3389 \
             --priority 100
 
-            
+
 
 #      - name: Create Azure Key Vault
 #        run: |
