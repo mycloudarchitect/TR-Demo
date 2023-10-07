@@ -35,7 +35,7 @@ env:
   FIREWALL_NAME_EUS: afw-alztr-eus-sand-001
   FIREWALL_IP_CONFIG_NAME_EUS: ipg-alztr-eus-sand-001
   FIREWALL_PUBLIC_IP_EUS: pip-alztr-eus-sand-001
-  FIREWALL_VNET_NAME_EUS: vnet-alztr-eus-sand-001
+  FIREWALL_VNET_NAME_EUS: vnet-afw-alztr-eus-sand-001
   FIREWALL_SUBNET_NAME_EUS: AzureFirewallSubnet
 
   WORKLOAD_SUBNET_NAME_EUS: snet-wl-alztr-eus-sand-001
