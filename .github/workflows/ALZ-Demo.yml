@@ -138,7 +138,7 @@ jobs:
 
       - name: Create Azure Firewall IPConfig East US
         run: |            
-                az network firewall nic ip-config create \
+                az network firewall ip-config create \
                 --firewall-name ${{ env.FIREWALL_NAME_EUS }} \
                 --name ${{ env.FIREWALL_IP_CONFIG_NAME_EUS }} \
                 --public-ip-address ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
