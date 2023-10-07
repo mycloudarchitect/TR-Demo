@@ -177,7 +177,7 @@ jobs:
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \           
             --name ${{ env.JUMPBOX_NAME_EUS }} \
             --port 3389 \
-            --priority 100
+            --priority 100 \
 
 
 
