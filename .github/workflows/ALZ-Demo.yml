@@ -141,7 +141,7 @@ jobs:
             az network vnet subnet create \
             --name ${{ env.WORKLOAD_SUBNET_NAME_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
-            --name ${{ env.FIREWALL_VNET_NAME_EUS }} \
+            --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \
             --address-prefix 10.0.2.0/24
           
       - name: Create Azure Firewall Subnet 03 East US
@@ -149,7 +149,7 @@ jobs:
             az network vnet subnet create \
             --name ${{ env.JUMPBOX_SUBNET_NAME_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
-            --name ${{ env.FIREWALL_VNET_NAME_EUS }} \
+            --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \
             --address-prefix 10.0.3.0/24
 
       - name: Create Azure Firewall IPConfig East US
