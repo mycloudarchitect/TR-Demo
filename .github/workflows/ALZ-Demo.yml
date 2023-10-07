@@ -151,14 +151,14 @@ jobs:
             --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \
             --address-prefix 10.0.3.0/24
 
-      - name: Create Azure Firewall IPConfig East US
-        run: |            
-            az network firewall ip-config create \
-            --firewall-name ${{ env.FIREWALL_NAME_EUS }} \
-            --name ${{ env.FIREWALL_IP_CONFIG_NAME_EUS }} \
-            --public-ip-address ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
-            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
-            --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \            
+      # - name: Create Azure Firewall IPConfig East US
+        # run: |            
+          # az network firewall ip-config create \
+          # --firewall-name ${{ env.FIREWALL_NAME_EUS }} \
+          # --name ${{ env.FIREWALL_IP_CONFIG_NAME_EUS }} \
+          # --public-ip-address ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
+          # --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+          # --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \            
 
       - name: Create FW Management Jumpbox VM East US      
         run: |
