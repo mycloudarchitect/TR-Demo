@@ -163,11 +163,10 @@ jobs:
       - name: Create FW Management Jumpbox VM East US      
         run: |
             az vm create \
-            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
             --name ${{ env.JUMPBOX_NAME_EUS }} \
-            --location ${{ env.STORAGE_ACCOUNT_LOCATION_EUS }} \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
             --image win2016datacenter \
-            --name ${{ env.FIREWALL_VNET_NAME_EUS }} \
+            --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \
             --subnet ${{ env.JUMPBOX_SUBNET_NAME_EUS }} \
             --admin-username ${{ env.AZURE_ADMIN_USERNAME }} \
             --admin-password ${{ env.AZURE_ADMIN_PASSWORD }} \
