@@ -36,7 +36,7 @@ env:
   FIREWALL_IP_CONFIG_NAME_EUS: ipg-alztr-eus-sand-001
   FIREWALL_PUBLIC_IP_EUS: pip-alztr-eus-sand-001
   FIREWALL_VNET_NAME_EUS: vnet-alztr-eus-sand-001
-  FIREWALL_SUBNET_NAME_EUS: snet-alztr-eus-sand-001
+  FIREWALL_SUBNET_NAME_EUS: AzureFirewallSubnet
 
   WORKLOAD_SUBNET_NAME_EUS: snet-wl-alztr-eus-sand-001
 
@@ -143,6 +143,7 @@ jobs:
                 --name ${{ env.FIREWALL_IP_CONFIG_NAME_EUS }} \
                 --public-ip-address ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
                 --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+                --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \
 
       - name: Create Azure Firewall Subnet 02 East US
         run: |    
