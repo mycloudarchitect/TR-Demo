@@ -129,11 +129,10 @@ jobs:
       - name: Create Azure Firewall vNet & Subnet 01 East US
         run: |            
             az network vnet create \
-            --name ${{ env.FIREWALL_VNET_NAME_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
-            --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }} \
+            --name ${{ env.FIREWALL_VNET_NAME_EUS }} \
             --address-prefix 10.0.0.0/16 \
-            --name ${{ env.FIREWALL_SUBNET_NAME_EUS }} \
+            --subnet-name ${{ env.FIREWALL_SUBNET_NAME_EUS }} \
             --subnet-prefix 10.0.1.0/26
 
       - name: Create Azure Firewall Subnet 02 East US
