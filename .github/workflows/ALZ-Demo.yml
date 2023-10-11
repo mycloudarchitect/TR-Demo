@@ -195,5 +195,5 @@ jobs:
 #            --vault-name ${{ env.KEY_VAULT_NAME_EUS }} \
 #            --value "${{ env.ACCESS_TOKEN_VALUE_EUS }}"
 
-      #- name: Azure Logout
-      #  run: az logout
+#- name: Azure Logout
+#  run: az logout
