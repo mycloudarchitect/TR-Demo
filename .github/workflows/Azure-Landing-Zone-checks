@@ -1,0 +1,325 @@
+name: Deploy Azure Landing Zone (TR)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read # This is required for actions/checkout
+
+env:
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+  RESOURCE_GROUP_NAME_EUS: rg-alztr-eus-sand-001
+  RESOURCE_GROUP_LOCATION_EUS: eastus
+  RESOURCE_GROUP_NAME_FW_EUS: rg-afw-alztr-eus-sand-001
+  RESOURCE_GROUP_LOCATION_FW_EUS: eastus
+
+  STORAGE_ACCOUNT_NAME_EUS: steusalztr001${{ github.run_id }}
+  STORAGE_ACCOUNT_SKU_EUS: Standard_LRS
+  STORAGE_ACCOUNT_LOCATION_EUS: eastus
+
+  VNET_NAME_EUS: vnet-alztr-eus-sand-001
+  VNET_ADDRESS_PREFIX_EUS: 10.10.0.0/16
+  VNET_SUBNET_NAME_EUS: snet-alztr-eus-sand-001
+  VNET_SUBNET_PREFIX_EUS: 10.10.1.0/24
+
+  PRIVATE_ENDPOINT_NAME_EUS: pep-alztr-eus-sand-001
+
+  FIREWALL_NAME_EUS: afw-alztr-eus-sand-001
+  FIREWALL_IP_CONFIG_NAME_EUS: ipg-alztr-eus-sand-001
+  FIREWALL_PUBLIC_IP_EUS: pip-alztr-eus-sand-001
+  FIREWALL_VNET_NAME_EUS: vnet-afw-alztr-eus-sand-001
+  FIREWALL_SUBNET_NAME_EUS: AzureFirewallSubnet
+
+  WORKLOAD_SUBNET_NAME_EUS: snet-wl-alztr-eus-sand-001
+
+  JUMPBOX_SUBNET_NAME_EUS: snet-jump-alztr-eus-sand-001
+  JUMPBOX_NAME_EUS: vm-jump-afw-001
+
+  AZURE_ADMIN_USERNAME: ${{ secrets.AZURE_ADMIN_USERNAME }}
+  AZURE_ADMIN_PASSWORD: ${{ secrets.AZURE_ADMIN_PASSWORD }}
+
+  KEY_VAULT_NAME_EUS: kv-alztr-eus-sand-001
+  SERVICE_PRINCIPAL_OBJECT_ID_EUS: ${{ secrets.SERVICE_PRINCIPAL_OBJECT_ID_EUS }}
+  # ACCESS_TOKEN_SECRET_NAME_EUS: actoken-alztr-eus-sand-001  # Name under which the access token will be stored
+  # ACCESS_TOKEN_VALUE_EUS: ${{ secrets.ACCESS_TOKEN_VALUE_EUS }}  # Actual access token value
+
+jobs:
+
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Azure CLI Login using OIDC
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: 'Run az commands'
+      run: |
+        az account show
+        az group list
+        pwd
+
+    - name: Check if Azure Resource Group exists
+      id: check-group
+      run: |
+        exists=$(az group show --name ${{ env.RESOURCE_GROUP_NAME_EUS }} --query id -o tsv)
+        if [ -z "$exists" ]; then
+          echo "::set-output name=exists::false"
+        else
+          echo "::set-output name=exists::true"
+        fi
+      shell: bash
+
+    - name: Create Azure Resource Group
+      run: |
+        az group create --name ${{ env.RESOURCE_GROUP_NAME_EUS }} --location ${{ env.RESOURCE_GROUP_LOCATION_EUS }}
+
+    - name: Check if Azure Firewall Resource Group exists
+      id: check-group
+      run: |
+        exists=$(az group show --name ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} --query id -o tsv)
+        if [ -z "$exists" ]; then
+          echo "::set-output name=exists::false"
+        else
+          echo "::set-output name=exists::true"
+        fi
+      shell: bash
+
+    - name: Create Azure Firewall Resource Group
+      run: |
+        az group create --name ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }}
+
+    - name: Check if Azure Storage Account exists
+      id: check-storage account
+      run: |
+        exists=$(az storage account show --name ${{ env.STORAGE_ACCOUNT_NAME_EUS }} --query id -o tsv)
+        if [ -z "$exists" ]; then
+          echo "::set-output name=exists::false"
+        else
+          echo "::set-output name=exists::true"
+        fi
+      shell: bash
+
+    - name: Create Azure Storage Account East US
+      run: |
+        az storage account create \
+          --name ${{ env.STORAGE_ACCOUNT_NAME_EUS }} \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME_EUS }} \
+          --location ${{ env.STORAGE_ACCOUNT_LOCATION_EUS }} \
+          --sku ${{ env.STORAGE_ACCOUNT_SKU_EUS }}
+
+    - name: Check if Virtual Network East US exists
+      id: check-network vnet
+      run: |
+        exists=$(az network vnet show --name ${{ env.VNET_NAME_EUS }} --query id -o tsv)
+        if [ -z "$exists" ]; then
+          echo "::set-output name=exists::false"
+        else
+          echo "::set-output name=exists::true"
+        fi
+      shell: bash
+
+    - name: Create Azure Virtual Network East US
+      run: "az network vnet create \\\n  --resource-group ${{ env.RESOURCE_GROUP_NAME_EUS }} \\\n  --name ${{ env.VNET_NAME_EUS }} \\\n  --address-prefix ${{ env.VNET_ADDRESS_PREFIX_EUS }} \\\n  --subnet-name ${{ env.VNET_SUBNET_NAME_EUS }} \\\n  --subnet-prefix ${{ env.VNET_SUBNET_PREFIX_EUS }} \n  #magic___^_^___line\n"
+    - name: Check if Azure Private Endpoint exists
+      id: check-network private-endpoint
+      run: |
+        exists=$(az network private-endpoint show --name ${{ env.PRIVATE_ENDPOINT_NAME_EUS }} --query id -o tsv)
+        if [ -z "$exists" ]; then
+          echo "::set-output name=exists::false"
+        else
+          echo "::set-output name=exists::true"
+        fi
+      shell: bash
+
+    - name: Create Azure Private Endpoint East US
+      run: |
+        az network private-endpoint create \
+        --name ${{ env.PRIVATE_ENDPOINT_NAME_EUS }} \
+        --resource-group ${{ env.RESOURCE_GROUP_NAME_EUS }} \
+        --vnet-name ${{ env.VNET_NAME_EUS }} \
+        --subnet ${{ env.VNET_SUBNET_NAME_EUS }} \
+        --private-connection-resource-id "/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME_EUS }}/providers/Microsoft.Storage/storageAccounts/${{ env.STORAGE_ACCOUNT_NAME_EUS }}" \
+        --group-ids blob \
+        --connection-name blobConnection
+
+    - name: Check if Azure Firewall East US exists
+      id: check-network firewall
+      run: |
+        exists=$(az network firewall show --name ${{ env.FIREWALL_NAME_EUS }} --query id -o tsv)
+        if [ -z "$exists" ]; then
+          echo "::set-output name=exists::false"
+        else
+          echo "::set-output name=exists::true"
+        fi
+      shell: bash
+
+    - name: Create Azure Firewall East US
+      run: |
+        az network firewall create \
+        --name ${{ env.FIREWALL_NAME_EUS }} \
+        --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+        --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }} \
+
+    - name: Check if Azure Firewall PIP East US exists
+      id: check-network public-ip
+      run: |
+        exists=$(az network public-ip show --name ${{ env.FIREWALL_PUBLIC_IP_EU }} --query id -o tsv)
+        if [ -z "$exists" ]; then
+          echo "::set-output name=exists::false"
+        else
+          echo "::set-output name=exists::true"
+        fi
+      shell: bash
+
+    - name: Create Azure Firewall PIP East US
+      run: |
+        az network public-ip create \
+        --name ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
+        --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+        --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }} \
+        --allocation-method static \
+        --sku standard
+
+    - name: Check if Azure Firewall vNet & Subnet 01 East US exists
+      id: check-network vnet
+      run: "exists=$(az network network vnet show --name ${{ env.FIREWALL_VNET_NAME_EUS }} --query id -o tsv)\nexists=$(az network network vnet subnet show --name ${{ env.FIREWALL_SUBNET_NAME_EUS }} --query id -o tsv)          \nif [ -z \"$exists\" ]; then\n  echo \"::set-output name=exists::false\"\nelse\n  echo \"::set-output name=exists::true\"\nfi\n"
+      shell: bash
+
+    - name: Create Azure Firewall vNet & Subnet 01 East US
+      run: |
+        az network vnet create \
+        --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+        --name ${{ env.FIREWALL_VNET_NAME_EUS }} \
+        --address-prefix 10.0.0.0/16 \
+        --subnet-name ${{ env.FIREWALL_SUBNET_NAME_EUS }} \
+        --subnet-prefix 10.0.1.0/26
+
+    - name: Check if Azure Firewall Subnet 02 East US exists
+      id: check-network vnet subnet
+      run: |
+        exists=$(az network vnet subnet show --name ${{ env.WORKLOAD_SUBNET_NAME_EUS }} --query id -o tsv)
+        if [ -z "$exists" ]; then
+          echo "::set-output name=exists::false"
+        else
+          echo "::set-output name=exists::true"
+        fi
+      shell: bash
+
+    - name: Create Azure Firewall Subnet 02 East US
+      run: |
+        az network vnet subnet create \
+        --name ${{ env.WORKLOAD_SUBNET_NAME_EUS }} \
+        --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+        --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \
+        --address-prefix 10.0.2.0/24
+
+    - name: Check if Azure Firewall Subnet 03 East US exists
+      id: check-network vnet subnet
+      run: |
+        exists=$(az network vnet subnet show --name ${{ env.JUMPBOX_SUBNET_NAME_EUS }} --query id -o tsv)
+        if [ -z "$exists" ]; then
+          echo "::set-output name=exists::false"
+        else
+          echo "::set-output name=exists::true"
+        fi
+      shell: bash
+
+    - name: Create Azure Firewall Subnet 03 East US
+      run: |
+        az network vnet subnet create \
+        --name ${{ env.JUMPBOX_SUBNET_NAME_EUS }} \
+        --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+        --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \
+        --address-prefix 10.0.3.0/24
+
+      # - name: Create Azure Firewall IPConfig East US
+      # run: |            
+      # az network firewall ip-config create \
+      # --firewall-name ${{ env.FIREWALL_NAME_EUS }} \
+      # --name ${{ env.FIREWALL_IP_CONFIG_NAME_EUS }} \
+      # --public-ip-address ${{ env.FIREWALL_PUBLIC_IP_EUS }} \
+      # --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+      # --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \            
+
+    - name: Check if Azure Firewall Subnet 03 East US exists
+      id: check-vm
+      run: |
+        exists=$(az vm show --name ${{ env.JUMPBOX_NAME_EUS }} --query id -o tsv)
+        if [ -z "$exists" ]; then
+          echo "::set-output name=exists::false"
+        else
+          echo "::set-output name=exists::true"
+        fi
+      shell: bash
+
+    - name: Create FW Management Jumpbox VM East US
+      run: |
+        az vm create \
+        --name ${{ env.JUMPBOX_NAME_EUS }} \
+        --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+        --image win2016datacenter \
+        --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \
+        --subnet ${{ env.JUMPBOX_SUBNET_NAME_EUS }} \
+        --admin-username ${{ env.AZURE_ADMIN_USERNAME }} \
+        --admin-password ${{ env.AZURE_ADMIN_PASSWORD }} \
+
+    - name: Check if Azure Key Vault exists
+      id: check-keyvault
+      run: |
+        exists=$(az keyvault show --name ${{ env.KEY_VAULT_NAME_EUS }} --query id -o tsv)
+        if [ -z "$exists" ]; then
+          echo "::set-output name=exists::false"
+        else
+          echo "::set-output name=exists::true"
+        fi
+      shell: bash
+
+    - name: Create Azure Key Vault
+      run: |
+        az keyvault create \
+        --name ${{ env.KEY_VAULT_NAME_EUS }} \
+        --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
+        --location eastus
+
+    - name: Check if Access Policies for Azure Key Vault East US exists
+      id: check-keyvault
+      run: |
+        exists=$(az keyvault show --name ${{ env.KEY_VAULT_NAME_EUS }} --query id -o tsv)
+        if [ -z "$exists" ]; then
+          echo "::set-output name=exists::false"
+        else
+          echo "::set-output name=exists::true"
+        fi
+      shell: bash
+
+    - name: Set Access Policies for Azure Key Vault East US
+      run: |
+        needs: create-keyvault
+        az keyvault set-policy \
+        --name ${{ env.KEY_VAULT_NAME_EUS }} \
+        --object-id ${{ env.SERVICE_PRINCIPAL_OBJECT_ID_EUS }} \
+        --key-permissions get create delete list \
+        --secret-permissions get set delete \
+        --certificate-permissions get import delete
+
+#      - name: Store Access Token in Azure Key Vault East US
+#        run: |
+#            az keyvault secret set \
+#            --name ${{ env.ACCESS_TOKEN_SECRET_NAME_EUS }} \
+#            --vault-name ${{ env.KEY_VAULT_NAME_EUS }} \
+#            --value "${{ env.ACCESS_TOKEN_VALUE_EUS }}"
+
+#- name: Azure Logout
+#  run: az logout
