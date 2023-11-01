@@ -171,16 +171,16 @@ jobs:
             --admin-username ${{ env.AZURE_ADMIN_USERNAME }} \
             --admin-password ${{ env.AZURE_ADMIN_PASSWORD }} \
 
-
       - name: Create Azure Key Vault
         run: |
             az keyvault create \
             --name ${{ env.KEY_VAULT_NAME_EUS }} \
             --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
             --location eastus
-
+      
       - name: Set Access Policies for Azure Key Vault East US
         run: |
+            needs: create-key-vault
             az keyvault set-policy \
             --name ${{ env.KEY_VAULT_NAME_EUS }} \
             --object-id ${{ env.SERVICE_PRINCIPAL_OBJECT_ID_EUS }} \
