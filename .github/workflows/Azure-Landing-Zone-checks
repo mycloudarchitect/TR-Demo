@@ -150,7 +150,7 @@ jobs:
 # -----------------------------------------------------------------------------------------------------------
 
     - name: Check if Azure Private Endpoint exists
-      id: check-network private-endpoint
+      id: check-private-endpoint
       run: |
         exists=$(az network private-endpoint show --name ${{ env.PRIVATE_ENDPOINT_NAME_EUS }} --query id -o tsv)
         if [ -z "$exists" ]; then
