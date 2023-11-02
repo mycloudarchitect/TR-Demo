@@ -339,7 +339,6 @@ jobs:
 
     - name: Set Access Policies for Azure Key Vault East US
       run: |
-        needs: create-keyvault
         az keyvault set-policy \
         --name ${{ env.KEY_VAULT_NAME_EUS }} \
         --object-id ${{ env.SERVICE_PRINCIPAL_OBJECT_ID_EUS }} \
