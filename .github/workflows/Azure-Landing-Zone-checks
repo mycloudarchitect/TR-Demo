@@ -1,4 +1,4 @@
-name: Deploy Azure Landing Zone (TR) 
+name: Deploy Azure Landing Zone (TR)
 
 on:
   workflow_dispatch:
@@ -49,7 +49,7 @@ env:
   KEY_VAULT_NAME_EUS: kv-alztr-eus-sand-001
   SERVICE_PRINCIPAL_OBJECT_ID_EUS: ${{ secrets.SERVICE_PRINCIPAL_OBJECT_ID_EUS }}
   # ACCESS_TOKEN_SECRET_NAME_EUS: actoken-alztr-eus-sand-001  # Name under which the access token will be stored
-  # ACCESS_TOKEN_VALUE_EUS: ${{ secrets.ACCESS_TOKEN_VALUE_EUS }}  # Actual access token value
+# ACCESS_TOKEN_VALUE_EUS: ${{ secrets.ACCESS_TOKEN_VALUE_EUS }}  # Actual access token value
 
 jobs:
 
@@ -70,6 +70,8 @@ jobs:
         az group list
         pwd
 
+# -----------------------------------------------------------------------------------------------------------
+
     - name: Check if Azure Resource Group exists
       id: check-group
       run: |
@@ -85,6 +87,8 @@ jobs:
       run: |
         az group create --name ${{ env.RESOURCE_GROUP_NAME_EUS }} --location ${{ env.RESOURCE_GROUP_LOCATION_EUS }}
 
+# -----------------------------------------------------------------------------------------------------------
+
     - name: Check if Azure Firewall Resource Group exists
       id: check-group
       run: |
@@ -99,6 +103,8 @@ jobs:
     - name: Create Azure Firewall Resource Group
       run: |
         az group create --name ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }}
+
+# -----------------------------------------------------------------------------------------------------------
 
     - name: Check if Azure Storage Account exists
       id: check-storage account
@@ -119,6 +125,8 @@ jobs:
           --location ${{ env.STORAGE_ACCOUNT_LOCATION_EUS }} \
           --sku ${{ env.STORAGE_ACCOUNT_SKU_EUS }}
 
+# -----------------------------------------------------------------------------------------------------------
+
     - name: Check if Virtual Network East US exists
       id: check-network vnet
       run: |
@@ -131,7 +139,16 @@ jobs:
       shell: bash
 
     - name: Create Azure Virtual Network East US
-      run: "az network vnet create \\\n  --resource-group ${{ env.RESOURCE_GROUP_NAME_EUS }} \\\n  --name ${{ env.VNET_NAME_EUS }} \\\n  --address-prefix ${{ env.VNET_ADDRESS_PREFIX_EUS }} \\\n  --subnet-name ${{ env.VNET_SUBNET_NAME_EUS }} \\\n  --subnet-prefix ${{ env.VNET_SUBNET_PREFIX_EUS }} \n  #magic___^_^___line\n"
+      run: |
+        az network vnet create \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME_EUS }} \
+          --name ${{ env.VNET_NAME_EUS }} \
+          --address-prefix ${{ env.VNET_ADDRESS_PREFIX_EUS }} \
+          --subnet-name ${{ env.VNET_SUBNET_NAME_EUS }} \
+          --subnet-prefix ${{ env.VNET_SUBNET_PREFIX_EUS }}
+
+# -----------------------------------------------------------------------------------------------------------
+
     - name: Check if Azure Private Endpoint exists
       id: check-network private-endpoint
       run: |
@@ -154,6 +171,8 @@ jobs:
         --group-ids blob \
         --connection-name blobConnection
 
+# -----------------------------------------------------------------------------------------------------------
+
     - name: Check if Azure Firewall East US exists
       id: check-network firewall
       run: |
@@ -171,6 +190,8 @@ jobs:
         --name ${{ env.FIREWALL_NAME_EUS }} \
         --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
         --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }} \
+
+# -----------------------------------------------------------------------------------------------------------
 
     - name: Check if Azure Firewall PIP East US exists
       id: check-network public-ip
@@ -192,6 +213,8 @@ jobs:
         --allocation-method static \
         --sku standard
 
+# -----------------------------------------------------------------------------------------------------------
+
     - name: Check if Azure Firewall vNet & Subnet 01 East US exists
       id: check-network vnet
       run: "exists=$(az network network vnet show --name ${{ env.FIREWALL_VNET_NAME_EUS }} --query id -o tsv)\nexists=$(az network network vnet subnet show --name ${{ env.FIREWALL_SUBNET_NAME_EUS }} --query id -o tsv)          \nif [ -z \"$exists\" ]; then\n  echo \"::set-output name=exists::false\"\nelse\n  echo \"::set-output name=exists::true\"\nfi\n"
@@ -205,6 +228,8 @@ jobs:
         --address-prefix 10.0.0.0/16 \
         --subnet-name ${{ env.FIREWALL_SUBNET_NAME_EUS }} \
         --subnet-prefix 10.0.1.0/26
+
+# -----------------------------------------------------------------------------------------------------------
 
     - name: Check if Azure Firewall Subnet 02 East US exists
       id: check-network vnet subnet
@@ -224,6 +249,8 @@ jobs:
         --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
         --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \
         --address-prefix 10.0.2.0/24
+
+# -----------------------------------------------------------------------------------------------------------
 
     - name: Check if Azure Firewall Subnet 03 East US exists
       id: check-network vnet subnet
@@ -253,6 +280,8 @@ jobs:
       # --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
       # --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \            
 
+# -----------------------------------------------------------------------------------------------------------
+
     - name: Check if Azure Firewall Subnet 03 East US exists
       id: check-vm
       run: |
@@ -275,6 +304,8 @@ jobs:
         --admin-username ${{ env.AZURE_ADMIN_USERNAME }} \
         --admin-password ${{ env.AZURE_ADMIN_PASSWORD }} \
 
+# -----------------------------------------------------------------------------------------------------------
+
     - name: Check if Azure Key Vault exists
       id: check-keyvault
       run: |
@@ -292,6 +323,8 @@ jobs:
         --name ${{ env.KEY_VAULT_NAME_EUS }} \
         --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
         --location eastus
+
+# -----------------------------------------------------------------------------------------------------------
 
     - name: Check if Access Policies for Azure Key Vault East US exists
       id: check-keyvault
