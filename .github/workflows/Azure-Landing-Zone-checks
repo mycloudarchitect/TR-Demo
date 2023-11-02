@@ -70,8 +70,6 @@ jobs:
         az group list
         pwd
 
-# -----------------------------------------------------------------------------------------------------------
-
     - name: Check if Azure Resource Group exists
       id: check-group
       run: |
@@ -87,8 +85,6 @@ jobs:
       run: |
         az group create --name ${{ env.RESOURCE_GROUP_NAME_EUS }} --location ${{ env.RESOURCE_GROUP_LOCATION_EUS }}
 
-# -----------------------------------------------------------------------------------------------------------
-
     - name: Check if Azure Firewall Resource Group exists
       id: check-group
       run: |
@@ -103,8 +99,6 @@ jobs:
     - name: Create Azure Firewall Resource Group
       run: |
         az group create --name ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }}
-
-# -----------------------------------------------------------------------------------------------------------
 
     - name: Check if Azure Storage Account exists
       id: check-storage account
@@ -124,8 +118,6 @@ jobs:
           --resource-group ${{ env.RESOURCE_GROUP_NAME_EUS }} \
           --location ${{ env.STORAGE_ACCOUNT_LOCATION_EUS }} \
           --sku ${{ env.STORAGE_ACCOUNT_SKU_EUS }}
-
-# -----------------------------------------------------------------------------------------------------------
 
     - name: Check if Virtual Network East US exists
       id: check-network vnet
@@ -147,8 +139,6 @@ jobs:
           --subnet-name ${{ env.VNET_SUBNET_NAME_EUS }} \
           --subnet-prefix ${{ env.VNET_SUBNET_PREFIX_EUS }}
 
-# -----------------------------------------------------------------------------------------------------------
-
     - name: Check if Azure Private Endpoint exists
       id: check-private-endpoint
       run: |
@@ -160,6 +150,13 @@ jobs:
         fi
       shell: bash
 
+    - name: Delete existing Azure Private Endpoint East US
+      if: steps.check-private-endpoint.outputs.exists == 'true'
+      run: |
+        az network private-endpoint delete \
+        --name ${{ env.PRIVATE_ENDPOINT_NAME_EUS }} \
+        --resource-group ${{ env.RESOURCE_GROUP_NAME_EUS }}
+
     - name: Create Azure Private Endpoint East US
       run: |
         az network private-endpoint create \
@@ -170,8 +167,6 @@ jobs:
         --private-connection-resource-id "/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME_EUS }}/providers/Microsoft.Storage/storageAccounts/${{ env.STORAGE_ACCOUNT_NAME_EUS }}" \
         --group-ids blob \
         --connection-name blobConnection
-
-# -----------------------------------------------------------------------------------------------------------
 
     - name: Check if Azure Firewall East US exists
       id: check-network firewall
@@ -190,8 +185,6 @@ jobs:
         --name ${{ env.FIREWALL_NAME_EUS }} \
         --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
         --location ${{ env.RESOURCE_GROUP_LOCATION_FW_EUS }} \
-
-# -----------------------------------------------------------------------------------------------------------
 
     - name: Check if Azure Firewall PIP East US exists
       id: check-network public-ip
@@ -213,8 +206,6 @@ jobs:
         --allocation-method static \
         --sku standard
 
-# -----------------------------------------------------------------------------------------------------------
-
     - name: Check if Azure Firewall vNet & Subnet 01 East US exists
       id: check-network vnet
       run: "exists=$(az network network vnet show --name ${{ env.FIREWALL_VNET_NAME_EUS }} --query id -o tsv)\nexists=$(az network network vnet subnet show --name ${{ env.FIREWALL_SUBNET_NAME_EUS }} --query id -o tsv)          \nif [ -z \"$exists\" ]; then\n  echo \"::set-output name=exists::false\"\nelse\n  echo \"::set-output name=exists::true\"\nfi\n"
@@ -228,8 +219,6 @@ jobs:
         --address-prefix 10.0.0.0/16 \
         --subnet-name ${{ env.FIREWALL_SUBNET_NAME_EUS }} \
         --subnet-prefix 10.0.1.0/26
-
-# -----------------------------------------------------------------------------------------------------------
 
     - name: Check if Azure Firewall Subnet 02 East US exists
       id: check-network vnet subnet
@@ -249,8 +238,6 @@ jobs:
         --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
         --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \
         --address-prefix 10.0.2.0/24
-
-# -----------------------------------------------------------------------------------------------------------
 
     - name: Check if Azure Firewall Subnet 03 East US exists
       id: check-network vnet subnet
@@ -272,6 +259,7 @@ jobs:
         --address-prefix 10.0.3.0/24
 
       # - name: Create Azure Firewall IPConfig East US
+    - name: Check if Azure Firewall Subnet 03 East US exists
       # run: |            
       # az network firewall ip-config create \
       # --firewall-name ${{ env.FIREWALL_NAME_EUS }} \
@@ -280,9 +268,6 @@ jobs:
       # --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
       # --vnet-name ${{ env.FIREWALL_VNET_NAME_EUS }} \            
 
-# -----------------------------------------------------------------------------------------------------------
-
-    - name: Check if Azure Firewall Subnet 03 East US exists
       id: check-vm
       run: |
         exists=$(az vm show --name ${{ env.JUMPBOX_NAME_EUS }} --query id -o tsv)
@@ -304,8 +289,6 @@ jobs:
         --admin-username ${{ env.AZURE_ADMIN_USERNAME }} \
         --admin-password ${{ env.AZURE_ADMIN_PASSWORD }} \
 
-# -----------------------------------------------------------------------------------------------------------
-
     - name: Check if Azure Key Vault exists
       id: check-keyvault
       run: |
@@ -323,8 +306,6 @@ jobs:
         --name ${{ env.KEY_VAULT_NAME_EUS }} \
         --resource-group ${{ env.RESOURCE_GROUP_NAME_FW_EUS }} \
         --location eastus
-
-# -----------------------------------------------------------------------------------------------------------
 
     - name: Check if Access Policies for Azure Key Vault East US exists
       id: check-keyvault
