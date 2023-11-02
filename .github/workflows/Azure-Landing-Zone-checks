@@ -139,19 +139,7 @@ jobs:
           --subnet-name ${{ env.VNET_SUBNET_NAME_EUS }} \
           --subnet-prefix ${{ env.VNET_SUBNET_PREFIX_EUS }}
 
-    - name: Check if Azure Private Endpoint exists
-      id: check-network_private-endpoint
-      run: |
-        exists=$(az network private-endpoint show --name ${{ env.PRIVATE_ENDPOINT_NAME_EUS }} --query id -o tsv)
-        if [ -z "$exists" ]; then
-          echo "::set-output name=exists::false"
-        else
-          echo "::set-output name=exists::true"
-        fi
-      shell: bash
-
     - name: Delete existing Azure Private Endpoint East US
-      if: steps.check-network_private-endpoint.outputs.exists == 'true'
       run: |
         az network private-endpoint delete \
         --name ${{ env.PRIVATE_ENDPOINT_NAME_EUS }} \
@@ -318,14 +306,14 @@ jobs:
         fi
       shell: bash
 
-    - name: Set Access Policies for Azure Key Vault East US
-      run: |
-        az keyvault set-policy \
-        --name ${{ env.KEY_VAULT_NAME_EUS }} \
-        --object-id ${{ env.SERVICE_PRINCIPAL_OBJECT_ID_EUS }} \
-        --key-permissions get create delete list \
-        --secret-permissions get set delete \
-        --certificate-permissions get import delete
+#   - name: Set Access Policies for Azure Key Vault East US
+#     run: |
+#       az keyvault set-policy \
+#       --name ${{ env.KEY_VAULT_NAME_EUS }} \
+#       --object-id ${{ env.SERVICE_PRINCIPAL_OBJECT_ID_EUS }} \
+#       --key-permissions get create delete list \
+#       --secret-permissions get set delete \
+#       --certificate-permissions get import delete
 
 #      - name: Store Access Token in Azure Key Vault East US
 #        run: |
